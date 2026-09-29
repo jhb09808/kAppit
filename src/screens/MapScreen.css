@@ -1,0 +1,53 @@
+.mapscreen { position: absolute; inset: 0; }
+.mapmain { position: absolute; inset: 0; }
+
+.top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 30;
+  padding: calc(12px + var(--safe-t)) 16px 12px;
+  background: linear-gradient(180deg, var(--abaca) 55%, rgba(245, 240, 227, 0)); pointer-events: none;
+}
+.top > * { pointer-events: auto; }
+.searchrow { display: flex; gap: 10px; align-items: center; }
+.brand { display: none; align-items: center; margin-right: 6px; }
+.search { flex: 1; position: relative; max-width: 560px; }
+.search input {
+  width: 100%; font-size: 14.5px; color: var(--ink); background: var(--linen); border: 1px solid var(--line);
+  border-radius: var(--radius-pill); padding: 13px 16px 13px 42px; box-shadow: var(--shadow-card); outline: none;
+}
+.search input:focus { border-color: var(--ube); }
+.search input::placeholder { color: var(--ink-faint); }
+.search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
+
+/* visibility toggle — your photo with a status ring */
+.vis {
+  width: 44px; height: 44px; border-radius: 50%; background: #c98b6b; border: 3px solid var(--leaf);
+  display: grid; place-items: center; font: 400 15px var(--font-serif); color: #fff; position: relative; flex: 0 0 auto;
+  box-shadow: var(--shadow-card); transition: border-color .2s, filter .2s;
+}
+.vis.hidden { border-color: var(--ink-faint); filter: saturate(.4) brightness(.9); }
+.vis span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font: 700 9px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); white-space: nowrap; }
+
+.chips { display: flex; gap: 8px; margin-top: 11px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+
+.visprompt {
+  position: absolute; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); z-index: 45; max-width: 380px; margin: 0 auto;
+  background: var(--linen); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px 22px 18px; box-shadow: var(--shadow-sheet);
+}
+.visprompt p { margin: 8px 0 16px; }
+.visprompt .row { display: flex; gap: 8px; align-items: center; }
+
+@media (min-width: 768px) {
+  .top { padding-left: 24px; padding-right: 24px; }
+}
+
+/* desktop: rail | sidebar | map */
+@media (min-width: 1100px) {
+  .mapscreen { display: grid; grid-template-columns: var(--panel-w) 1fr; }
+  .mapscreen > .handrail { grid-column: 1; }
+  .mapmain { position: relative; grid-column: 2; }
+  .brand { display: flex; }
+  .top { padding: 16px 24px; }
+  .recenter { bottom: 24px !important; right: 24px; }
+  .maplibregl-ctrl-bottom-right { bottom: 0 !important; }
+}

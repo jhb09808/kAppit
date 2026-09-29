@@ -1,0 +1,7 @@
+.shell { position: absolute; inset: 0; }
+.content { position: absolute; inset: 0; padding-bottom: calc(var(--nav-h) + var(--safe-b)); }
+@media (min-width: 1100px) {
+  .shell { display: grid; grid-template-columns: var(--rail-w) 1fr; }
+  .shell > .nav { grid-column: 1; }
+  .content { position: relative; grid-column: 2; padding-bottom: 0; }
+}

@@ -1,0 +1,40 @@
+.mapwrap { position: relative; width: 100%; height: 100%; }
+.map { position: absolute; inset: 0; }
+.maplibregl-ctrl-attrib { font-family: var(--font-sans); font-size: 10px; background: rgba(253, 251, 244, .85) !important; }
+.maplibregl-ctrl-bottom-right { bottom: calc(var(--nav-h) + var(--safe-b) + 66px); }
+
+.recenter {
+  position: absolute; right: 16px; bottom: calc(var(--nav-h) + var(--safe-b) + 78px);
+  width: 44px; height: 44px; border-radius: 50%; background: var(--linen); border: 1px solid var(--line);
+  display: grid; place-items: center; box-shadow: var(--shadow-pin); z-index: 28; transition: border-color .18s;
+}
+.recenter:hover { border-color: var(--ube); }
+.recenter svg { width: 20px; height: 20px; stroke: var(--ube); fill: none; stroke-width: 2; }
+
+/* pins — the markers on the real map */
+.pin {
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  border: 3px solid var(--abaca); cursor: pointer; box-shadow: var(--shadow-pin); position: relative;
+  transition: transform .18s, width .2s, height .2s;
+}
+.pin:hover { transform: scale(1.08); }
+.pin.sel { transform: scale(1.16); z-index: 5; }
+.pin svg { width: 19px; height: 19px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pin.meal { background: var(--verm); }
+.pin.event { background: var(--flan); } .pin.event svg { stroke: var(--ink); }
+.pin.spot { background: var(--leaf); }
+.pin.person { border-color: var(--ube); font: 400 15px var(--font-serif); color: #fff; background-size: cover; background-position: center; }
+.pin.person .ty { position: absolute; right: -6px; bottom: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--ube); border: 2px solid var(--abaca); display: grid; place-items: center; }
+.pin.person .ty svg { width: 10px; height: 10px; stroke-width: 2.5; }
+.pin.person .ver { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--leaf); border: 2px solid var(--abaca); display: grid; place-items: center; }
+.pin.person .ver svg { width: 8px; height: 8px; stroke-width: 3.5; }
+.pin.live::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--verm); opacity: .55; animation: ping 2.4s ease-out infinite; }
+
+/* zoomed out: pins collapse to colored dots */
+.pin.dot { width: 16px; height: 16px; border-width: 2px; font-size: 0; }
+.pin.dot svg, .pin.dot .ty, .pin.dot .ver { display: none; }
+.pin.dot.person { background-image: none !important; background-color: var(--ube) !important; }
+.pin.dot::after { display: none; }
+
+.me { width: 22px; height: 22px; border-radius: 50%; background: var(--ube); border: 3.5px solid var(--abaca); position: relative; box-shadow: 0 3px 10px rgba(78, 45, 122, .4); }
+.me::after { content: ""; position: absolute; inset: -11px; border-radius: 50%; border: 2px solid var(--ube); opacity: .45; animation: ping 3s ease-out infinite; }

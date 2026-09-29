@@ -1,0 +1,69 @@
+.welcome { position: absolute; inset: 0; background: var(--abaca); overflow: hidden; }
+
+/* splash */
+.splash { position: absolute; inset: 0; background: var(--abaca); z-index: 80; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity .55s, visibility .55s; }
+.splash.gone { opacity: 0; visibility: hidden; }
+.splash .weave { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(90deg, var(--ube) 0 3px, transparent 3px 9px), repeating-linear-gradient(90deg, var(--flan) 0 1px, transparent 1px 18px); transform: scaleX(0); transform-origin: left; animation: weaveIn .8s .1s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes weaveIn { to { transform: scaleX(1); } }
+.hug { width: 132px; height: 132px; overflow: visible; }
+.arm { stroke-dasharray: 118; stroke-dashoffset: 118; animation: draw 1.05s .25s cubic-bezier(.5, .05, .2, 1) forwards; }
+.arm.b { animation-delay: .42s; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.hd { opacity: 0; transform-origin: center; animation: pop .5s cubic-bezier(.2, 1.5, .4, 1) forwards; }
+.hd.a { animation-delay: 1.16s; } .hd.b { animation-delay: 1.3s; }
+@keyframes pop { 0% { opacity: 0; transform: translateY(7px) scale(.5); } 100% { opacity: 1; transform: none; } }
+.splash .wm { margin-top: 22px; opacity: 0; animation: rise .6s 1.5s cubic-bezier(.2, .7, .3, 1) forwards; }
+.splash .tag { font: italic 400 16px var(--font-serif); color: var(--ink-dim); margin-top: 9px; opacity: 0; animation: rise .6s 1.72s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes rise { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: none; } }
+
+/* onboarding */
+.onboard { position: absolute; inset: 0; display: flex; flex-direction: column; padding: calc(20px + var(--safe-t)) 26px calc(30px + var(--safe-b)); max-width: 480px; margin: 0 auto; opacity: 0; transition: opacity .5s .15s; }
+.onboard.in { opacity: 1; }
+.topbar { display: flex; align-items: center; justify-content: space-between; }
+.mini { display: flex; align-items: center; gap: 8px; }
+.skip { background: none; border: none; font: 600 13px var(--font-sans); color: var(--ink-faint); padding: 6px 2px; }
+.stage { flex: 1; position: relative; overflow: hidden; margin: 0 -26px; }
+.slide { position: absolute; inset: 0; padding: 0 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; transform: translateX(28px); transition: opacity .42s, transform .42s; pointer-events: none; }
+.slide.on { opacity: 1; transform: none; pointer-events: auto; }
+.slide.prev { transform: translateX(-28px); }
+.slide h2 { margin-bottom: 10px; }
+.slide p { font-size: 15px; color: var(--ink-dim); max-width: 30ch; }
+.art { height: 290px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 26px; }
+
+.kapslot { width: 210px; height: 290px; background: url("/brand/kap.png") bottom center / contain no-repeat; filter: drop-shadow(0 16px 22px rgba(78, 45, 122, .2)); cursor: pointer; opacity: 0; transform: translateY(26px); }
+.kapslot.here { opacity: 1; transform: none; transition: opacity .5s, transform .6s cubic-bezier(.2, 1.1, .35, 1); animation: bob 4.2s 1s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+.minimap { width: 250px; height: 250px; border-radius: 26px; background: var(--abaca-2); border: 1px solid var(--line); position: relative; overflow: hidden; background-image: repeating-linear-gradient(90deg, transparent 0 27px, rgba(106, 63, 160, .11) 27px 28px), repeating-linear-gradient(0deg, transparent 0 27px, rgba(106, 63, 160, .11) 27px 28px); }
+.minimap .me { position: absolute; left: 112px; top: 112px; width: 26px; height: 26px; border-radius: 50%; background: var(--ube); border: 3px solid var(--abaca); }
+.minimap .me::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--ube); opacity: .5; animation: ping 2.6s ease-out infinite; }
+.minimap .mp { position: absolute; width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--abaca); box-shadow: var(--shadow-pin); }
+.mp.meal { background: var(--verm); left: 170px; top: 52px; } .mp.event { background: var(--flan); left: 44px; top: 158px; }
+.mp.person { background: var(--ube); left: 184px; top: 176px; } .mp.spot { background: var(--leaf); left: 38px; top: 38px; }
+
+.mealcard { width: 265px; background: var(--linen); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; text-align: left; box-shadow: 0 14px 30px rgba(42, 31, 61, .11); }
+.mealcard .bn { height: 84px; background: var(--ube); background-image: var(--weave); position: relative; }
+.mealcard .bn .badge { position: absolute; top: 11px; left: 11px; background: var(--linen); border-color: transparent; }
+.mealcard .bd { padding: 14px 15px 15px; }
+.mealcard .t-card { font-size: 19px; margin: 6px 0 4px; }
+
+.dots { display: flex; gap: 7px; justify-content: center; margin: 22px 0 18px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: .28s; cursor: pointer; }
+.dots i.on { width: 22px; border-radius: 999px; background: var(--ube); }
+.alt { width: 100%; background: none; border: none; font: 600 13.5px var(--font-sans); color: var(--ink-dim); padding: 15px 0 4px; }
+.alt b { color: var(--ube); }
+
+/* Kap, fourth wall */
+.scrim { position: absolute; inset: 0; background: rgba(42, 31, 61, .34); opacity: 0; visibility: hidden; transition: .4s; z-index: 65; }
+.scrim.on { opacity: 1; visibility: visible; }
+.peek { position: absolute; left: 50%; bottom: 0; width: 522px; height: 568px; z-index: 70; transform: translate(-50%, 105%); pointer-events: none; transition: transform .72s cubic-bezier(.22, 1.15, .36, 1); }
+.peek.up { transform: translate(-50%, 3%); pointer-events: auto; }
+.peek .body { position: absolute; inset: 0; background: url("/brand/kap.png") bottom center / contain no-repeat; cursor: pointer; filter: drop-shadow(0 -22px 48px rgba(78, 45, 122, .4)); }
+.peek.up .body { animation: lean 2.6s .5s ease-in-out infinite; }
+@keyframes lean { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-1.4deg); } 75% { transform: rotate(1.4deg); } }
+.bubble { position: absolute; left: 50%; top: -72px; transform: translate(-50%, 10px) scale(.85); background: var(--linen); border: 1px solid var(--line); border-radius: 16px; padding: 13px 17px; box-shadow: 0 12px 28px rgba(42, 31, 61, .16); white-space: nowrap; opacity: 0; transition: opacity .3s, transform .42s cubic-bezier(.2, 1.4, .4, 1); }
+.peek.up .bubble { opacity: 1; transform: translate(-50%, 0) scale(1); transition-delay: .46s; }
+.bubble .l1 { font: 400 19px/1.15 var(--font-serif); }
+.bubble .l2 { font-size: 12.5px; color: var(--ink-dim); margin-top: 3px; }
+.bubble::after { content: ""; position: absolute; left: calc(50% - 7px); bottom: -8px; width: 15px; height: 15px; background: var(--linen); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); }
+.kapfab { position: absolute; right: 20px; bottom: calc(150px + var(--safe-b)); width: 50px; height: 50px; border-radius: 50%; background: var(--flan); border: 2px solid var(--abaca); box-shadow: var(--shadow-host); display: grid; place-items: center; z-index: 60; }

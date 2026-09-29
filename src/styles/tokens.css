@@ -1,0 +1,63 @@
+/* kAppit design tokens — source of truth is the kAppit Design System artifact.
+   Never hardcode a hex in a component; use these variables. */
+:root {
+  /* grounds */
+  --abaca: #f5f0e3;
+  --abaca-2: #ece4d2;
+  --linen: #fdfbf4;
+  --line: #ddd4c2;
+  --line-soft: #e8e1d2;
+
+  /* ink */
+  --ink: #2a1f3d;
+  --ink-dim: #665e75;
+  --ink-faint: #9a94a5;
+
+  /* brand */
+  --ube: #6a3fa0;        /* PRIMARY */
+  --ube-700: #4e2d7a;
+  --ube-400: #9d6fe0;
+  --ube-100: #efe7f7;
+  --flan: #f2a93b;       /* host / create */
+  --flan-600: #dd9327;
+  --verm: #e63a1e;       /* LIVE only */
+  --verm-600: #cc2f16;
+  --leaf: #2fa14f;       /* verified / safe */
+  --leaf-600: #22913f;
+
+  /* map */
+  --map-water: #d9d2ea;
+  --map-park: #dfe9d3;
+
+  /* type */
+  --font-serif: "Marcellus", Georgia, serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+
+  /* shape */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  /* shadow */
+  --shadow-card: 0 3px 10px rgba(42, 31, 61, 0.06);
+  --shadow-pin: 0 5px 14px rgba(42, 31, 61, 0.24);
+  --shadow-sheet: 0 -12px 34px rgba(42, 31, 61, 0.14);
+  --shadow-host: 0 6px 16px rgba(242, 169, 59, 0.45);
+
+  /* layout */
+  --nav-h: 74px;
+  --rail-w: 84px;
+  --panel-w: 400px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+
+  /* texture: the woven ube banner */
+  --weave: repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255, 255, 255, 0.12) 5px, rgba(255, 255, 255, 0.12) 6px);
+}
+
+@media (min-width: 1500px) {
+  :root { --panel-w: 460px; }
+}
