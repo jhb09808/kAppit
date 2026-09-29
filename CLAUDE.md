@@ -28,7 +28,7 @@ The single source of truth for brand, tokens, components, copy rules, and the ma
 
 - `src/styles/` — tokens and global styles
 - `src/components/` — MapView, Handrail (the sheet/sidebar), Nav, Shell, Icon (glyphs, Mark, Wordmark)
-- `src/screens/` — Welcome (splash + onboarding + fourth-wall Kap), MapScreen (home), Events (categories + Host sheet), Feed (My kapits / Everyone nearby), Settings, placeholders for Chats and Profile
+- `src/screens/` — Welcome (splash + onboarding + fourth-wall Kap), MapScreen (home), Events (categories + Host sheet), Feed (My kapits / Everyone nearby; posts carry text, up to 4 photos or 1 video, an external link preview, an event, or a business), Settings, placeholders for Chats and Profile
 - `src/lib/` — types, geo (jitter/distance), seed data, settings store (device-local until auth), supabase client
 - `supabase/schema.sql` — tables, jitter trigger, public views, RLS
 
@@ -45,6 +45,7 @@ People = photo (or initials) in an ube ring with a type badge. Events: food shar
 1. Create-event flows: food share (dish, time, seats, area — one-sentence feel) and the fuller event form for other categories.
 2. Auth (Supabase: phone/Apple/Google) and Profile with `region_ph`, photo, type picker; move the settings store to the profile row.
 3. Chats with a per-event thread.
-4. Business pages (claimable listings) and business search.
-5. Wire Map/Events/Feed to `public_profiles` / `public_events` / `public_businesses` / `posts` instead of seed.
-6. Papunta — the ride layer: deep-link to Maps, the host's "who's on the way" strip, Kap greeting on arrival.
+4. Feed uploads: Supabase Storage bucket "posts" for photos/video, and an `unfurl` edge function that fetches OpenGraph data for external links (never trust client-supplied previews).
+5. Business pages (claimable listings) and business search.
+6. Wire Map/Events/Feed to `public_profiles` / `public_events` / `public_businesses` / `posts` instead of seed.
+7. Papunta — the ride layer: deep-link to Maps, the host's "who's on the way" strip, Kap greeting on arrival.

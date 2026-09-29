@@ -71,15 +71,31 @@ export interface Business {
   lat: number;
 }
 
-/** A post on the feed. */
+/** A post on the feed: text, up to 4 photos or 1 video, an external link, an event or a business. */
+export interface PostMedia {
+  type: "image" | "video";
+  url: string;
+  poster?: string;                 // video thumbnail
+  alt?: string;
+}
+export interface LinkPreview {
+  url: string;
+  title: string;
+  description?: string;
+  image?: string;
+  site?: string;                   // "youtube.com"
+}
 export interface Post {
   id: string;
   author_id: string;
   author?: Profile;
   body: string;
-  photo_url: string | null;
+  media: PostMedia[];
+  link: LinkPreview | null;
   event_id: string | null;         // a post can be about an event
   business_id: string | null;      // or a business
+  kapit_count: number;
+  reply_count: number;
   created_at: string;
 }
 

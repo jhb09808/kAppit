@@ -80,11 +80,29 @@ create table posts (
   id uuid primary key default gen_random_uuid(),
   author_id uuid not null references profiles(id) on delete cascade,
   body text not null check (length(body) <= 2000),
-  photo_url text,
+  media jsonb not null default '[]',      -- [{type:'image'|'video', url, poster?, alt?}], max 4 images or 1 video; files in Supabase Storage bucket "posts"
+  link jsonb,                             -- {url, title, description?, image?, site?} — fetched server-side (unfurl edge function)
   event_id uuid references events(id) on delete set null,
   business_id uuid references businesses(id) on delete set null,
+  created_at timestamptz not null default now(),
+  check (jsonb_array_length(media) <= 4)
+);
+create index posts_created_idx on posts (created_at desc);
+
+create table post_kapits (               -- the "kapit" reaction on a post
+  post_id uuid references posts(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  primary key (post_id, user_id)
+);
+create table post_replies (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references posts(id) on delete cascade,
+  author_id uuid not null references profiles(id) on delete cascade,
+  body text not null check (length(body) <= 1000),
   created_at timestamptz not null default now()
 );
+
+-- Storage: create a public bucket "posts" (images ≤10 MB, video ≤100 MB); RLS on storage.objects: insert where owner = auth.uid().
 
 -- kapits: a confirmed connection between two people (the verb, as a table)
 create table kapits (
@@ -179,6 +197,8 @@ alter table events enable row level security;
 alter table businesses enable row level security;
 alter table posts enable row level security;
 alter table kapits enable row level security;
+alter table post_kapits enable row level security;
+alter table post_replies enable row level security;
 alter table rsvps enable row level security;
 alter table messages enable row level security;
 alter table conversation_members enable row level security;
@@ -194,6 +214,10 @@ create policy "businesses: owner manages" on businesses for all using (owner_id 
 create policy "posts: read" on posts for select using (
   not exists (select 1 from blocks b where b.user_id = auth.uid() and b.blocked_user_id = posts.author_id));
 create policy "posts: own" on posts for all using (author_id = auth.uid()) with check (author_id = auth.uid());
+create policy "post_kapits: read" on post_kapits for select using (true);
+create policy "post_kapits: own" on post_kapits for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "post_replies: read" on post_replies for select using (true);
+create policy "post_replies: own" on post_replies for all using (author_id = auth.uid()) with check (author_id = auth.uid());
 create policy "kapits: either side" on kapits for all using (user_id = auth.uid() or kapit_id = auth.uid()) with check (user_id = auth.uid());
 create policy "rsvps: own"  on rsvps for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "rsvps: host sees" on rsvps for select using (

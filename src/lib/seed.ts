@@ -29,10 +29,12 @@ export const businesses: Business[] = [
 ];
 
 export const posts: Post[] = [
-  { id: "x1", author_id: "p2", body: "Sinigang tonight, 4 seats left. Sakay na 🍲", photo_url: null, event_id: "e1", business_id: null, created_at: h(-1) },
-  { id: "x2", author_id: "p5", body: "Valerio's has ube ensaymada again. Go early.", photo_url: null, event_id: null, business_id: "b3", created_at: h(-5) },
-  { id: "x3", author_id: "p1", body: "First week in Chula Vista. Anyone from Iloilo around? Miss batchoy so much.", photo_url: null, event_id: null, business_id: null, created_at: h(-9) },
-  { id: "x4", author_id: "p4", body: "Basketball Sunday is on. 9 so far. Come through even if you're bad.", photo_url: null, event_id: "e4", business_id: null, created_at: h(-20) },
+  { id: "x1", author_id: "p2", body: "Sinigang tonight, 4 seats left. Sakay na 🍲", media: [{ type: "image", url: "https://picsum.photos/seed/sinigang/900/700", alt: "A pot of sinigang" }], link: null, event_id: "e1", business_id: null, kapit_count: 12, reply_count: 4, created_at: h(-1) },
+  { id: "x2", author_id: "p5", body: "Valerio's has ube ensaymada again. Go early.", media: [{ type: "image", url: "https://picsum.photos/seed/ensaymada1/900/900" }, { type: "image", url: "https://picsum.photos/seed/ensaymada2/900/900" }], link: null, event_id: null, business_id: "b3", kapit_count: 31, reply_count: 9, created_at: h(-5) },
+  { id: "x3", author_id: "p1", body: "First week in Chula Vista. Anyone from Iloilo around? Miss batchoy so much.", media: [], link: null, event_id: null, business_id: null, kapit_count: 18, reply_count: 11, created_at: h(-9) },
+  { id: "x4", author_id: "p3", body: "This is exactly how my lola made lumpia. Watch the fold.", media: [], link: { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "How to roll lumpia the Kapampangan way", description: "Tight, thin, no air pockets. 6 minutes.", image: "https://picsum.photos/seed/lumpiavid/1200/630", site: "youtube.com" }, event_id: null, business_id: null, kapit_count: 44, reply_count: 6, created_at: h(-14) },
+  { id: "x5", author_id: "p4", body: "Basketball Sunday is on. 9 so far. Come through even if you're bad.", media: [{ type: "video", url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", poster: "https://picsum.photos/seed/hoops/900/600" }], link: null, event_id: "e4", business_id: null, kapit_count: 7, reply_count: 2, created_at: h(-20) },
+  { id: "x6", author_id: "p5", body: "PSA for new arrivals: the DMV on Broadway is way faster than the one downtown. Bring two proofs of address.", media: [], link: { url: "https://www.dmv.ca.gov/portal/", title: "California DMV — Appointments", site: "dmv.ca.gov" }, event_id: null, business_id: null, kapit_count: 63, reply_count: 15, created_at: h(-30) },
 ];
 
 export function seedItems(): MapItem[] {
