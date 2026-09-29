@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { MapItem } from "../lib/types";
@@ -67,6 +67,7 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
   const markers = useRef<Map<string, maplibregl.Marker>>(new Map());
   const meMarker = useRef<maplibregl.Marker | null>(null);
   const flewToMe = useRef(false);
+  const [ready, setReady] = useState(0);   // bumps when a map instance exists; marker effects key off it
 
   useEffect(() => {
     if (!el.current || map.current) return;
@@ -79,23 +80,33 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
     m.on("style.load", () => recolor(m));
     m.on("moveend", () => onMoveEnd?.(m.getBounds()));
     map.current = m;
-    return () => { m.remove(); map.current = null; };
+    setReady((r) => r + 1);
+    return () => {
+      // StrictMode/HMR tear the map down and rebuild it: forget every marker that belonged to the old instance
+      for (const mk of markers.current.values()) mk.remove();
+      markers.current.clear();
+      meMarker.current = null;
+      flewToMe.current = false;
+      m.remove(); map.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // the viewer's own dot — only once we actually have a fix
   useEffect(() => {
     const m = map.current; if (!m || !me) return;
+    void ready;
     if (!meMarker.current) {
       const dot = document.createElement("div"); dot.className = "me";
       meMarker.current = new maplibregl.Marker({ element: dot }).setLngLat([me.lng, me.lat]).addTo(m);
     } else meMarker.current.setLngLat([me.lng, me.lat]);
     if (!flewToMe.current) { flewToMe.current = true; m.flyTo({ center: [me.lng, me.lat], zoom: 13.6, duration: 1400 }); }
-  }, [me]);
+  }, [me, ready]);
 
   // sync markers with items
   useEffect(() => {
     const m = map.current; if (!m) return;
+    void ready;
     const seen = new Set<string>();
     for (const it of items) {
       seen.add(it.id);
@@ -105,7 +116,7 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
       markers.current.set(it.id, new maplibregl.Marker({ element: pin }).setLngLat([it.lng, it.lat]).addTo(m));
     }
     for (const [id, mk] of markers.current) if (!seen.has(id)) { mk.remove(); markers.current.delete(id); }
-  }, [items, viewerOptedIntoDating, onSelect]);
+  }, [items, viewerOptedIntoDating, onSelect, ready]);
 
   // selection + zoom-level collapse
   useEffect(() => {
@@ -117,7 +128,7 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
     const apply = () => { const dots = m.getZoom() < DOT_ZOOM; for (const mk of markers.current.values()) mk.getElement().classList.toggle("dot", dots); };
     m.on("zoom", apply); apply();
     return () => { m.off("zoom", apply); };
-  }, [items]);
+  }, [items, ready]);
 
   return (
     <div className="mapwrap">
