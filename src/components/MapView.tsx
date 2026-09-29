@@ -66,7 +66,7 @@ export default function MapView({ items, center, selectedId, viewerOptedIntoDati
     const m = new maplibregl.Map({
       container: el.current,
       style: "https://tiles.openfreemap.org/styles/positron",
-      center, zoom: 12.4,
+      center, zoom: 12.6,
       attributionControl: { compact: true },
     });
     m.on("style.load", () => recolor(m));
