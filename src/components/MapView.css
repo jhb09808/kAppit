@@ -37,5 +37,5 @@
 .pin.dot.person { background-image: none !important; background-color: var(--ube) !important; }
 .pin.dot::after { display: none; }
 
-.me { width: 22px; height: 22px; border-radius: 50%; background: var(--ube); border: 3.5px solid var(--abaca); position: relative; box-shadow: 0 3px 10px rgba(78, 45, 122, .4); }
+.me { width: 22px; height: 22px; border-radius: 50%; background: var(--ube); border: 3.5px solid var(--abaca); position: relative; z-index: 6; box-shadow: 0 3px 10px rgba(78, 45, 122, .4); }
 .me::after { content: ""; position: absolute; inset: -11px; border-radius: 50%; border: 2px solid var(--ube); opacity: .45; animation: ping 3s ease-out infinite; }

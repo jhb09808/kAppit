@@ -97,8 +97,9 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
     const m = map.current; if (!m || !me) return;
     void ready;
     if (!meMarker.current) {
-      const dot = document.createElement("div"); dot.className = "me";
+      const dot = document.createElement("div"); dot.className = "me"; dot.setAttribute("aria-label", "You");
       meMarker.current = new maplibregl.Marker({ element: dot }).setLngLat([me.lng, me.lat]).addTo(m);
+      console.info("[kAppit] you are at", me.lat.toFixed(5), me.lng.toFixed(5), `±${Math.round(me.accuracy)}m`);
     } else meMarker.current.setLngLat([me.lng, me.lat]);
     if (!flewToMe.current) { flewToMe.current = true; m.flyTo({ center: [me.lng, me.lat], zoom: 13.6, duration: 1400 }); }
   }, [me, ready]);

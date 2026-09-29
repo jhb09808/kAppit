@@ -44,7 +44,7 @@ export function useLocation() {
     let granted = false;
     try { granted = localStorage.getItem(KEY) === "1"; } catch { /* ignore */ }
     if (granted && status === "idle") request();
-    return () => { if (watch.current != null) navigator.geolocation.clearWatch(watch.current); };
+    return () => { if (watch.current != null) { navigator.geolocation.clearWatch(watch.current); watch.current = null; } };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
