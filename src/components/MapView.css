@@ -9,7 +9,8 @@
   display: grid; place-items: center; box-shadow: var(--shadow-pin); z-index: 28; transition: border-color .18s;
 }
 .recenter:hover { border-color: var(--ube); }
-.recenter svg { width: 20px; height: 20px; stroke: var(--ube); fill: none; stroke-width: 2; }
+.recenter svg { width: 20px; height: 20px; stroke: var(--ink-faint); fill: none; stroke-width: 2; }
+.recenter.on svg { stroke: var(--ube); }
 
 /* pins — the markers on the real map */
 .pin {

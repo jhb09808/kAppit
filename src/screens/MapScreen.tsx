@@ -6,6 +6,7 @@ import { Icon, Wordmark } from "../components/Icon";
 import { HOME, seedItems } from "../lib/seed";
 import type { MapItem } from "../lib/types";
 import { useSettings } from "../lib/settings";
+import { useLocation } from "../lib/useLocation";
 import "./MapScreen.css";
 
 type Filter = "all" | "people" | "events" | "food" | "businesses" | "new" | "near";
@@ -17,6 +18,8 @@ const FILTERS: { id: Filter; label: string }[] = [
 export default function MapScreen() {
   const nav = useNavigate();
   const { settings, update } = useSettings();
+  const { me, status: locStatus, request: requestLocation } = useLocation();
+  const center: [number, number] = me ? [me.lng, me.lat] : HOME;
   const [items] = useState<MapItem[]>(() => seedItems());
   const [filters, setFilters] = useState<Set<Filter>>(new Set(["all"]));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -44,9 +47,20 @@ export default function MapScreen() {
 
   return (
     <div className="mapscreen">
-      <Handrail items={shown} center={HOME} selectedId={selectedId} open={open} onOpenChange={setOpen} onSelect={onSelect} />
+      <Handrail items={shown} center={center} selectedId={selectedId} open={open} onOpenChange={setOpen} onSelect={onSelect} />
       <main className="mapmain">
-        <MapView items={shown} center={HOME} selectedId={selectedId} viewerOptedIntoDating={settings.openToDating} onSelect={(id) => { setSelectedId(id); setOpen(true); }} />
+        <MapView items={shown} center={HOME} me={me} selectedId={selectedId} viewerOptedIntoDating={settings.openToDating} onSelect={(id) => { setSelectedId(id); setOpen(true); }} onRequestLocation={requestLocation} />
+
+        {locStatus !== "granted" && (
+          <div className={`locbar ${locStatus}`}>
+            {locStatus === "idle" && <><span>See what's near <b>you</b>, not the default spot.</span><button className="btn btn-primary btn-sm" onClick={requestLocation}>Use my location</button></>}
+            {locStatus === "asking" && <span>Asking your phone for location…</span>}
+            {locStatus === "denied" && <span>Location is off for this site. Turn it on in your browser settings, then reload.</span>}
+            {locStatus === "insecure" && <span>Location needs HTTPS. Open the <b>https://</b> address from the dev server (or the deployed site).</span>}
+            {locStatus === "unsupported" && <span>This browser can't share location.</span>}
+            {locStatus === "error" && <><span>Couldn't get a fix.</span><button className="btn btn-outline btn-sm" onClick={requestLocation}>Try again</button></>}
+          </div>
+        )}
 
         <div className="top">
           <div className="searchrow">

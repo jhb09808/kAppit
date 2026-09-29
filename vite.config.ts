@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 
-// https://vite.dev/config/
+// `npm run dev` → http (fine on the laptop; phones refuse geolocation over http)
+// `npm run dev:https` → self-signed https so a phone on the same Wi-Fi can share location
+const https = process.env.HTTPS === "1";
+
 export default defineConfig({
-  plugins: [react()],
-  server: { host: true },                       // reachable from your phone on the same Wi-Fi
-  optimizeDeps: { exclude: ["maplibre-gl"] },   // its web worker doesn't like the dep optimizer
+  plugins: [react(), ...(https ? [basicSsl()] : [])],
+  server: { host: true },
+  optimizeDeps: { exclude: ["maplibre-gl"] },
 });

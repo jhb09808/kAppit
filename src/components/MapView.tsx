@@ -47,36 +47,51 @@ function pinElement(item: MapItem, viewerOptedIntoDating: boolean): HTMLDivEleme
   return el;
 }
 
+/** Below this zoom, pins collapse to plain colored dots. */
+const DOT_ZOOM = 12;
+
 interface Props {
   items: MapItem[];
   center: [number, number];
+  me: { lng: number; lat: number; accuracy: number } | null;
   selectedId: string | null;
   viewerOptedIntoDating: boolean;
   onSelect: (id: string) => void;
+  onRequestLocation: () => void;
   onMoveEnd?: (bounds: maplibregl.LngLatBounds) => void;
 }
 
-export default function MapView({ items, center, selectedId, viewerOptedIntoDating, onSelect, onMoveEnd }: Props) {
+export default function MapView({ items, center, me, selectedId, viewerOptedIntoDating, onSelect, onRequestLocation, onMoveEnd }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const meMarker = useRef<maplibregl.Marker | null>(null);
+  const flewToMe = useRef(false);
 
   useEffect(() => {
     if (!el.current || map.current) return;
     const m = new maplibregl.Map({
       container: el.current,
       style: "https://tiles.openfreemap.org/styles/positron",
-      center, zoom: 12.6,
+      center, zoom: 13.3,
       attributionControl: { compact: true },
     });
     m.on("style.load", () => recolor(m));
     m.on("moveend", () => onMoveEnd?.(m.getBounds()));
-    const me = document.createElement("div"); me.className = "me";
-    new maplibregl.Marker({ element: me }).setLngLat(center).addTo(m);
     map.current = m;
     return () => { m.remove(); map.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // the viewer's own dot — only once we actually have a fix
+  useEffect(() => {
+    const m = map.current; if (!m || !me) return;
+    if (!meMarker.current) {
+      const dot = document.createElement("div"); dot.className = "me";
+      meMarker.current = new maplibregl.Marker({ element: dot }).setLngLat([me.lng, me.lat]).addTo(m);
+    } else meMarker.current.setLngLat([me.lng, me.lat]);
+    if (!flewToMe.current) { flewToMe.current = true; m.flyTo({ center: [me.lng, me.lat], zoom: 13.6, duration: 1400 }); }
+  }, [me]);
 
   // sync markers with items
   useEffect(() => {
@@ -99,7 +114,7 @@ export default function MapView({ items, center, selectedId, viewerOptedIntoDati
 
   useEffect(() => {
     const m = map.current; if (!m) return;
-    const apply = () => { const dots = m.getZoom() < 13; for (const mk of markers.current.values()) mk.getElement().classList.toggle("dot", dots); };
+    const apply = () => { const dots = m.getZoom() < DOT_ZOOM; for (const mk of markers.current.values()) mk.getElement().classList.toggle("dot", dots); };
     m.on("zoom", apply); apply();
     return () => { m.off("zoom", apply); };
   }, [items]);
@@ -107,7 +122,7 @@ export default function MapView({ items, center, selectedId, viewerOptedIntoDati
   return (
     <div className="mapwrap">
       <div ref={el} className="map" />
-      <button className="recenter" aria-label="Recenter" onClick={() => map.current?.flyTo({ center, zoom: 13.2 })}>
+      <button className={`recenter${me ? " on" : ""}`} aria-label="My location" onClick={() => { if (me) map.current?.flyTo({ center: [me.lng, me.lat], zoom: 14 }); else onRequestLocation(); }}>
         <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: GLYPH.recenter }} />
       </button>
     </div>

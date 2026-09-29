@@ -51,3 +51,16 @@
   .recenter { bottom: 24px !important; right: 24px; }
   .maplibregl-ctrl-bottom-right { bottom: 0 !important; }
 }
+
+/* location bar: sits under the chips until we have a fix */
+.locbar {
+  position: absolute; left: 16px; right: 16px; top: calc(118px + var(--safe-t)); z-index: 29;
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px;
+  background: var(--linen); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  font-size: 13.5px; color: var(--ink-dim); max-width: 520px;
+}
+.locbar b { color: var(--ink); }
+.locbar .btn { margin-left: auto; white-space: nowrap; }
+.locbar.denied, .locbar.insecure { border-color: var(--flan); }
+@media (min-width: 768px) { .locbar { left: 24px; } }
+@media (min-width: 1100px) { .locbar { top: 122px; } }

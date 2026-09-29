@@ -29,16 +29,16 @@ The single source of truth for brand, tokens, components, copy rules, and the ma
 - `src/styles/` — tokens and global styles
 - `src/components/` — MapView, Handrail (the sheet/sidebar), Nav, Shell, Icon (glyphs, Mark, Wordmark)
 - `src/screens/` — Welcome (splash + onboarding + fourth-wall Kap), MapScreen (home), Events (categories + Host sheet), Feed (My kapits / Everyone nearby; posts carry text, up to 4 photos or 1 video, an external link preview, an event, or a business), Settings, placeholders for Chats and Profile
-- `src/lib/` — types, geo (jitter/distance), seed data, settings store (device-local until auth), supabase client
+- `src/lib/` — types, geo (jitter/distance), seed data, settings store (device-local until auth), useLocation (asks once, watches, remembers the grant), supabase client
 - `supabase/schema.sql` — tables, jitter trigger, public views, RLS
 
 ## Working here
 
-`npm run dev` for the app. `npm run build` must pass before committing. Keep commits small and named by screen or feature. When adding a screen, add its route in `src/App.tsx` and replace the Placeholder.
+`npm run dev` for the app on the laptop. `npm run dev:https` when testing on a phone over Wi-Fi — browsers refuse geolocation on plain http, so the phone needs the https address (self-signed; accept the warning once). `npm run build` must pass before committing. Keep commits small and named by screen or feature. When adding a screen, add its route in `src/App.tsx` and replace the Placeholder.
 
 ## Map pins
 
-People = photo (or initials) in an ube ring with a type badge. Events: food share is `--verm` (pulses when today), every other category is `--flan`. Businesses are `--leaf`. Below zoom 13 everything collapses to dots.
+People = photo (or initials) in an ube ring with a type badge. Events: food share is `--verm` (pulses when today), every other category is `--flan`. Businesses are `--leaf`. Below zoom 12 everything collapses to dots. The viewer's own dot appears only once there is a real geolocation fix; nothing is ever hardcoded as "you".
 
 ## What's next (in order)
 
