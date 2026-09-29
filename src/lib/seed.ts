@@ -1,46 +1,52 @@
-import type { Event, MapItem, Meal, Profile, Spot } from "./types";
+import type { Business, Event, MapItem, Post, Profile } from "./types";
 import { jitter } from "./geo";
 
 /** Chula Vista / National City — where the app is being born. */
 export const HOME: [number, number] = [-117.05, 32.63];
 
-const people: Profile[] = [
+const h = (hours: number) => new Date(Date.now() + hours * 3600e3).toISOString();
+
+export const people: Profile[] = [
   { id: "p1", display_name: "Maria R.", photo_url: null, region_ph: "Iloilo", bio: "Just moved from Iloilo for a nursing job. Missing home cooking — who's making sinigang?", primary_type: "new_arrival", open_to_friends: true, open_to_dating: false, is_new_arrival: true, is_verified: true, is_visible: true, approx_lng: -117.099, approx_lat: 32.678 },
   { id: "p2", display_name: "Liza M.", photo_url: null, region_ph: "Iloilo", bio: "Night-shift nurse, weekends free. Looking for kababayan to have merienda with.", primary_type: "cook", open_to_friends: true, open_to_dating: false, is_new_arrival: false, is_verified: true, is_visible: true, approx_lng: -117.02, approx_lat: 32.66 },
   { id: "p3", display_name: "Danny C.", photo_url: null, region_ph: "Cebu", bio: "Free until 3. Halo-halo at Seafood City?", primary_type: "free_now", open_to_friends: true, open_to_dating: true, is_new_arrival: false, is_verified: false, is_visible: true, approx_lng: -117.06, approx_lat: 32.652 },
   { id: "p4", display_name: "Josh T.", photo_url: null, region_ph: "Cebu", bio: "Grad student at SDSU. Down to trade recipes or watch the game.", primary_type: "friends", open_to_friends: true, open_to_dating: false, is_new_arrival: false, is_verified: true, is_visible: true, approx_lng: -117.03, approx_lat: 32.622 },
-  { id: "p5", display_name: "Ate Ana", photo_url: null, region_ph: "Manila", bio: "Been in South Bay 14 years. Ask me anything — DMV, apartments, where the good pandesal is.", primary_type: "ate_kuya", open_to_friends: true, open_to_dating: false, is_new_arrival: false, is_verified: true, is_visible: true, approx_lng: -117.08, approx_lat: 32.61 },
+  { id: "p5", display_name: "Ate Ana", photo_url: null, region_ph: "Manila", bio: "In South Bay 14 years. Ask me anything — DMV, apartments, where the good pandesal is.", primary_type: "ate_kuya", open_to_friends: true, open_to_dating: false, is_new_arrival: false, is_verified: true, is_visible: true, approx_lng: -117.08, approx_lat: 32.61 },
 ];
 
-const meals: Meal[] = [
-  { id: "m1", host_id: "p2", dish: "A big pot of sinigang", note: "Made way too much — come through. Bring nothing but yourself. Kids welcome, we eat at 7 sharp.", starts_at: new Date(Date.now() + 3 * 3600e3).toISOString(), seats_total: 6, seats_taken: 2, is_live: true, approx_lng: -117.045, approx_lat: 32.641 },
-  { id: "m2", host_id: "p5", dish: "Lumpia rolling party", note: "I roll, you roll, we all eat. 200 pieces before Sunday — help and take some home.", starts_at: new Date(Date.now() + 26 * 3600e3).toISOString(), seats_total: 5, seats_taken: 3, is_live: false, approx_lng: -117.09, approx_lat: 32.605 },
+export const events: Event[] = [
+  { id: "e1", host_id: "p2", category: "food_share", title: "A big pot of sinigang", description: "Made way too much — come through. Bring nothing but yourself. Kids welcome, we eat at 7 sharp.", starts_at: h(3), venue: null, open_to_everyone: true, seats_total: 6, seats_taken: 2, is_live: true, approx_lng: -117.045, approx_lat: 32.641 },
+  { id: "e2", host_id: "p5", category: "food_share", title: "Lumpia rolling party", description: "I roll, you roll, we all eat. 200 pieces before Sunday — help and take some home.", starts_at: h(26), venue: null, open_to_everyone: true, seats_total: 5, seats_taken: 3, is_live: false, approx_lng: -117.09, approx_lat: 32.605 },
+  { id: "e3", host_id: "p5", category: "karaoke", title: "Karaoke night", description: "Everyone's welcome, nobody's good. Bring a dish if you can; no problem if not.", starts_at: h(96), venue: "Ate Ana's garage", open_to_everyone: true, seats_total: null, seats_taken: 14, is_live: false, approx_lng: -117.075, approx_lat: 32.617 },
+  { id: "e4", host_id: "p4", category: "sports", title: "Pickup basketball", description: "Sundays at the park. All levels.", starts_at: h(120), venue: "Eucalyptus Park", open_to_everyone: true, seats_total: null, seats_taken: 9, is_live: false, approx_lng: -117.06, approx_lat: 32.66 },
+  { id: "e5", host_id: "p1", category: "birthday", title: "Maria's 26th", description: "Open house, come and go. There will be lechon.", starts_at: h(200), venue: "Otay Ranch", open_to_everyone: true, seats_total: null, seats_taken: 21, is_live: false, approx_lng: -117.0, approx_lat: 32.62 },
 ];
 
-const events: Event[] = [
-  { id: "e1", host_id: "p5", title: "Karaoke night", kind: "karaoke", description: "Everyone's welcome, nobody's good. Bring a dish if you can; no problem if not.", starts_at: new Date(Date.now() + 4 * 86400e3).toISOString(), venue: "Ate Ana's garage", open_to_everyone: true, rsvp_count: 14, approx_lng: -117.075, approx_lat: 32.617 },
-  { id: "e2", host_id: "p4", title: "Pickup basketball", kind: "sports", description: "Sundays at the park. All levels.", starts_at: new Date(Date.now() + 5 * 86400e3).toISOString(), venue: "Eucalyptus Park", open_to_everyone: true, rsvp_count: 9, approx_lng: -117.06, approx_lat: 32.66 },
+export const businesses: Business[] = [
+  { id: "b1", name: "Seafood City", category: "grocery", description: "The unofficial town square. Turon at the bakery; the food court is a low-pressure first meet-up spot.", address: "1420 E Plaza Blvd, National City", hours: "7 AM – 9 PM", is_filipino_owned: true, lng: -117.093, lat: 32.663 },
+  { id: "b2", name: "Tita's Kitchenette", category: "restaurant", description: "Turo-turo. Point at what you want. The kare-kare goes fast.", address: "National City", hours: "10 AM – 8 PM", is_filipino_owned: true, lng: -117.098, lat: 32.672 },
+  { id: "b3", name: "Valerio's Bakery", category: "bakery", description: "Pandesal at 6 AM. Ube ensaymada on weekends.", address: "Chula Vista", hours: "6 AM – 6 PM", is_filipino_owned: true, lng: -117.04, lat: 32.618 },
 ];
 
-const spots: Spot[] = [
-  { id: "s1", name: "Seafood City", category: "grocery", lng: -117.093, lat: 32.663 },
+export const posts: Post[] = [
+  { id: "x1", author_id: "p2", body: "Sinigang tonight, 4 seats left. Sakay na 🍲", photo_url: null, event_id: "e1", business_id: null, created_at: h(-1) },
+  { id: "x2", author_id: "p5", body: "Valerio's has ube ensaymada again. Go early.", photo_url: null, event_id: null, business_id: "b3", created_at: h(-5) },
+  { id: "x3", author_id: "p1", body: "First week in Chula Vista. Anyone from Iloilo around? Miss batchoy so much.", photo_url: null, event_id: null, business_id: null, created_at: h(-9) },
+  { id: "x4", author_id: "p4", body: "Basketball Sunday is on. 9 so far. Come through even if you're bad.", photo_url: null, event_id: "e4", business_id: null, created_at: h(-20) },
 ];
 
 export function seedItems(): MapItem[] {
-  const byId = Object.fromEntries(people.map((p) => [p.id, p]));
   const items: MapItem[] = [];
   for (const p of people) {
     const j = jitter(p.id, p.approx_lng!, p.approx_lat!);
     items.push({ kind: "person", id: p.id, lng: j.lng, lat: j.lat, data: p });
   }
-  for (const m of meals) {
-    const j = jitter(m.id, m.approx_lng, m.approx_lat);
-    items.push({ kind: "meal", id: m.id, lng: j.lng, lat: j.lat, data: { ...m, host: byId[m.host_id] } });
-  }
   for (const e of events) {
     const j = jitter(e.id, e.approx_lng, e.approx_lat);
-    items.push({ kind: "event", id: e.id, lng: j.lng, lat: j.lat, data: { ...e, host: byId[e.host_id] } });
+    items.push({ kind: "event", id: e.id, lng: j.lng, lat: j.lat, data: { ...e, host: byId(e.host_id) } });
   }
-  for (const s of spots) items.push({ kind: "spot", id: s.id, lng: s.lng, lat: s.lat, data: s });
+  for (const b of businesses) items.push({ kind: "business", id: b.id, lng: b.lng, lat: b.lat, data: b });
   return items;
 }
+
+export function byId(id: string): Profile | undefined { return people.find((p) => p.id === id); }

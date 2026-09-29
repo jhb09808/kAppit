@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { MapItem } from "../lib/types";
 import { milesBetween } from "../lib/geo";
-import { GLYPH, Icon, PERSON_TYPE_LABEL } from "./Icon";
+import { BUSINESS_CATEGORY_LABEL, EVENT_CATEGORY_LABEL, GLYPH, Icon, PERSON_TYPE_LABEL } from "./Icon";
 import "./Handrail.css";
 
 interface Props {
@@ -13,27 +13,39 @@ interface Props {
   onSelect: (id: string | null) => void;
 }
 
-function title(it: MapItem) {
-  return it.kind === "person" ? it.data.display_name : it.kind === "meal" ? it.data.dish : it.kind === "event" ? it.data.title : it.data.name;
+const when = (iso: string) => `${new Date(iso).toLocaleDateString(undefined, { weekday: "short" })} ${new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+
+export function title(it: MapItem) {
+  return it.kind === "person" ? it.data.display_name : it.kind === "event" ? it.data.title : it.data.name;
 }
-function subtitle(it: MapItem) {
+export function subtitle(it: MapItem) {
   if (it.kind === "person") return [PERSON_TYPE_LABEL[it.data.primary_type], it.data.region_ph].filter(Boolean).join(" · ");
-  if (it.kind === "meal") return `${it.data.is_live ? "Tonight" : new Date(it.data.starts_at).toLocaleDateString(undefined, { weekday: "short" })} ${new Date(it.data.starts_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · ${it.data.seats_total - it.data.seats_taken} of ${it.data.seats_total} seats left`;
-  if (it.kind === "event") return `${new Date(it.data.starts_at).toLocaleDateString(undefined, { weekday: "short" })} ${new Date(it.data.starts_at).toLocaleTimeString(undefined, { hour: "numeric" })} · ${it.data.rsvp_count} going`;
-  return `Filipino ${it.data.category}`;
+  if (it.kind === "event") {
+    const e = it.data;
+    const seats = e.seats_total != null ? `${e.seats_total - e.seats_taken} of ${e.seats_total} seats left` : `${e.seats_taken} going`;
+    return `${EVENT_CATEGORY_LABEL[e.category]} · ${e.is_live ? "Tonight" : when(e.starts_at)} · ${seats}`;
+  }
+  return `${BUSINESS_CATEGORY_LABEL[it.data.category]}${it.data.hours ? ` · ${it.data.hours}` : ""}`;
 }
-function glyph(it: MapItem) {
-  return it.kind === "person" ? GLYPH[it.data.primary_type] : it.kind === "meal" ? GLYPH.meal : it.kind === "event" ? GLYPH[it.data.kind] : GLYPH.spot;
+export function glyph(it: MapItem) {
+  return it.kind === "person" ? GLYPH[it.data.primary_type] : it.kind === "event" ? GLYPH[it.data.category] : GLYPH[it.data.category];
+}
+export function thumbClass(it: MapItem) {
+  return it.kind === "person" ? "person" : it.kind === "event" ? (it.data.category === "food_share" ? "food" : "event") : "business";
 }
 
 export default function Handrail({ items, center, selectedId, open, onOpenChange, onSelect }: Props) {
   const [y0, setY0] = useState<number | null>(null);
-  const sorted = useMemo(() => [...items].sort((a, b) => milesBetween(a, { lng: center[0], lat: center[1] }) - milesBetween(b, { lng: center[0], lat: center[1] })), [items, center]);
+  const c = { lng: center[0], lat: center[1] };
+  const sorted = useMemo(() => [...items].sort((a, b) => milesBetween(a, c) - milesBetween(b, c)), [items, center]); // eslint-disable-line react-hooks/exhaustive-deps
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
-  const isPerson = selected?.kind === "person";
-  const seats = selected?.kind === "meal" ? { total: selected.data.seats_total, taken: selected.data.seats_taken } : null;
+  const seats = selected?.kind === "event" && selected.data.seats_total != null ? { total: selected.data.seats_total, taken: selected.data.seats_taken } : null;
   const full = seats ? seats.taken >= seats.total : false;
+
+  const thumb = (it: MapItem) => (
+    <div className={`thumb ${thumbClass(it)}`} dangerouslySetInnerHTML={it.kind === "person" ? { __html: it.data.display_name.slice(0, 2).toUpperCase() } : { __html: `<svg viewBox="0 0 24 24">${glyph(it)}</svg>` }} />
+  );
 
   return (
     <aside className={`handrail${open ? " open" : ""}${selected ? " detail" : ""}`}>
@@ -53,12 +65,12 @@ export default function Handrail({ items, center, selectedId, open, onOpenChange
           <div className="list">
             {sorted.map((it) => (
               <div key={it.id} className="row" onClick={() => onSelect(it.id)}>
-                <div className={`thumb ${it.kind}`} dangerouslySetInnerHTML={it.kind === "person" ? { __html: it.data.display_name.slice(0, 2).toUpperCase() } : { __html: `<svg viewBox="0 0 24 24">${glyph(it)}</svg>` }} />
+                {thumb(it)}
                 <div className="rinfo">
-                  <div className="t">{title(it)}{it.kind === "meal" && it.data.is_live && <span className="badge badge-live"><i />Live</span>}</div>
+                  <div className="t">{title(it)}{it.kind === "event" && it.data.is_live && <span className="badge badge-live"><i />Live</span>}</div>
                   <div className="s">{subtitle(it)}</div>
                 </div>
-                <span className="dist">{milesBetween(it, { lng: center[0], lat: center[1] }).toFixed(1)} mi</span>
+                <span className="dist">{milesBetween(it, c).toFixed(1)} mi</span>
               </div>
             ))}
           </div>
@@ -68,30 +80,37 @@ export default function Handrail({ items, center, selectedId, open, onOpenChange
           <div className="detailview">
             <button className="back" onClick={() => onSelect(null)}>← See who's near you tonight</button>
             <div className="dhead">
-              <div className={`thumb ${selected.kind}`} dangerouslySetInnerHTML={selected.kind === "person" ? { __html: selected.data.display_name.slice(0, 2).toUpperCase() } : { __html: `<svg viewBox="0 0 24 24">${glyph(selected)}</svg>` }} />
+              {thumb(selected)}
               <div>
                 <h3 className="t-card">{title(selected)}</h3>
-                <div className="t-caption">{subtitle(selected)} · {milesBetween(selected, { lng: center[0], lat: center[1] }).toFixed(1)} mi</div>
+                <div className="t-caption">{subtitle(selected)} · {milesBetween(selected, c).toFixed(1)} mi</div>
               </div>
             </div>
-            <p className="dbody">{selected.kind === "person" ? selected.data.bio : selected.kind === "meal" ? selected.data.note : selected.kind === "event" ? selected.data.description : "A Filipino spot. Low-pressure place for a first meet-up."}</p>
-            {(selected.kind === "meal" || selected.kind === "event") && selected.data.host && (
+            <p className="dbody">{selected.kind === "person" ? selected.data.bio : selected.data.description}</p>
+
+            {selected.kind === "event" && selected.data.host && (
               <div className="hostrow">
                 <div className="av">{selected.data.host.display_name.slice(0, 2).toUpperCase()}</div>
                 <div className="hn">Konduktor: {selected.data.host.display_name}<small>{selected.data.host.is_verified ? "Verified · " : ""}{selected.data.host.region_ph}</small></div>
                 <button className="btn btn-outline btn-sm" style={{ marginLeft: "auto" }}>Message</button>
               </div>
             )}
+            {selected.kind === "business" && (
+              <div className="hostrow">
+                <div className="hn">{selected.data.address}<small>{selected.data.is_filipino_owned ? "Filipino-owned" : ""}</small></div>
+              </div>
+            )}
             {seats && (
               <div className="seats">{Array.from({ length: seats.total }, (_, k) => <i key={k} className={k < seats.taken ? "taken" : ""} />)}<span>{full ? "It's full" : `${seats.total - seats.taken} of ${seats.total} seats left`}</span></div>
             )}
-            {selected.kind === "meal" && (full
+
+            {selected.kind === "event" && (full
               ? <button className="btn btn-outline btn-block">Join the sabit list</button>
-              : <button className="btn btn-sakay btn-block">Sakay na — {seats!.total - seats!.taken} seats left</button>)}
-            {selected.kind === "event" && <button className="btn btn-sakay btn-block">Sakay na</button>}
-            {isPerson && <button className="btn btn-primary btn-block">Kapit {selected.data.display_name.split(" ")[0]}</button>}
-            {selected.kind === "spot" && <button className="btn btn-primary btn-block">See details</button>}
-            <p className="safety">{isPerson || selected.kind === "spot" ? "Only their general area is shown — never an exact location." : <>Exact address is shared once the host confirms you. <b>Verified</b> hosts have ID on file.</>}</p>
+              : <button className="btn btn-sakay btn-block">Sakay na{seats ? ` — ${seats.total - seats.taken} seats left` : ""}</button>)}
+            {selected.kind === "person" && <button className="btn btn-primary btn-block">Kapit {selected.data.display_name.split(" ")[0]}</button>}
+            {selected.kind === "business" && <button className="btn btn-primary btn-block">Get directions</button>}
+
+            <p className="safety">{selected.kind === "person" ? "Only their general area is shown — never an exact location." : selected.kind === "event" ? <>Exact address is shared once the host confirms you. <b>Verified</b> hosts have ID on file.</> : "Public business — exact address shown."}</p>
           </div>
         )}
       </div>

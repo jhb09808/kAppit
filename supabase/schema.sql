@@ -28,35 +28,22 @@ create table profiles (
   updated_at timestamptz not null default now()
 );
 
--- ---------- meals (food share) ----------
-create table meals (
-  id uuid primary key default gen_random_uuid(),
-  host_id uuid not null references profiles(id) on delete cascade,
-  dish text not null,
-  note text,
-  starts_at timestamptz not null,
-  seats_total int not null check (seats_total between 1 and 20),
-  exact_location geography(point, 4326) not null,   -- NEVER exposed
-  approx_location geography(point, 4326) not null,
-  address text,                                     -- released only to confirmed guests
-  created_at timestamptz not null default now()
-);
-
--- ---------- events ----------
-create type event_kind as enum ('birthday','karaoke','sports','gathering');
+-- ---------- events (food share is one category) ----------
+create type event_category as enum ('food_share','birthday','karaoke','sports','church','outdoors','gathering');
 
 create table events (
   id uuid primary key default gen_random_uuid(),
   host_id uuid not null references profiles(id) on delete cascade,
-  title text not null,
-  kind event_kind not null default 'gathering',
+  category event_category not null default 'gathering',
+  title text not null,                              -- for food_share: the dish
   description text,
   starts_at timestamptz not null,
   venue text,
   open_to_everyone boolean not null default true,
-  exact_location geography(point, 4326) not null,
+  seats_total int check (seats_total between 1 and 200),   -- null = unlimited
+  exact_location geography(point, 4326) not null,   -- NEVER exposed
   approx_location geography(point, 4326) not null,
-  address text,
+  address text,                                     -- released only to confirmed guests
   created_at timestamptz not null default now()
 );
 
@@ -66,27 +53,52 @@ create type rsvp_status as enum ('pending','confirmed','declined','sabit');   --
 create table rsvps (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
-  meal_id uuid references meals(id) on delete cascade,
-  event_id uuid references events(id) on delete cascade,
+  event_id uuid not null references events(id) on delete cascade,
   status rsvp_status not null default 'pending',
   created_at timestamptz not null default now(),
-  check ((meal_id is null) <> (event_id is null)),
-  unique (user_id, meal_id), unique (user_id, event_id)
+  unique (user_id, event_id)
 );
 
--- ---------- spots (businesses: exact is fine) ----------
-create table spots (
+-- ---------- businesses (public: exact is fine) ----------
+create type business_category as enum ('restaurant','grocery','bakery','remittance','salon','other');
+
+create table businesses (
   id uuid primary key default gen_random_uuid(),
+  owner_id uuid references profiles(id) on delete set null,   -- claimed listings
   name text not null,
-  category text not null,
-  location geography(point, 4326) not null
+  category business_category not null default 'other',
+  description text,
+  address text,
+  hours text,
+  is_filipino_owned boolean not null default true,
+  location geography(point, 4326) not null,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- feed ----------
+create table posts (
+  id uuid primary key default gen_random_uuid(),
+  author_id uuid not null references profiles(id) on delete cascade,
+  body text not null check (length(body) <= 2000),
+  photo_url text,
+  event_id uuid references events(id) on delete set null,
+  business_id uuid references businesses(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- kapits: a confirmed connection between two people (the verb, as a table)
+create table kapits (
+  user_id uuid references profiles(id) on delete cascade,
+  kapit_id uuid references profiles(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending','accepted')),
+  created_at timestamptz not null default now(),
+  primary key (user_id, kapit_id)
 );
 
 -- ---------- chat ----------
 create table conversations (
   id uuid primary key default gen_random_uuid(),
-  meal_id uuid references meals(id) on delete cascade,     -- a thread spins up per meal
-  event_id uuid references events(id) on delete cascade,
+  event_id uuid references events(id) on delete cascade,   -- a thread spins up per event
   created_at timestamptz not null default now()
 );
 create table conversation_members (
@@ -132,7 +144,6 @@ begin
   return new;
 end $$;
 create trigger profiles_approx before insert or update of exact_location on profiles for each row execute function set_approx();
-create trigger meals_approx    before insert or update of exact_location on meals    for each row execute function set_approx();
 create trigger events_approx   before insert or update of exact_location on events   for each row execute function set_approx();
 
 -- ---------- what the client reads: views with NO exact columns ----------
@@ -142,31 +153,32 @@ create view public_profiles as
          st_x(approx_location::geometry) as approx_lng, st_y(approx_location::geometry) as approx_lat
   from profiles where is_visible;
 
-create view public_meals as
-  select m.id, m.host_id, m.dish, m.note, m.starts_at, m.seats_total,
-         (select count(*) from rsvps r where r.meal_id = m.id and r.status = 'confirmed')::int as seats_taken,
-         (m.starts_at::date = (now() at time zone 'utc')::date) as is_live,
-         st_x(m.approx_location::geometry) as approx_lng, st_y(m.approx_location::geometry) as approx_lat
-  from meals m where m.starts_at > now() - interval '3 hours';
-
 create view public_events as
-  select e.id, e.host_id, e.title, e.kind, e.description, e.starts_at, e.venue, e.open_to_everyone,
-         (select count(*) from rsvps r where r.event_id = e.id and r.status = 'confirmed')::int as rsvp_count,
+  select e.id, e.host_id, e.category, e.title, e.description, e.starts_at, e.venue, e.open_to_everyone, e.seats_total,
+         (select count(*) from rsvps r where r.event_id = e.id and r.status = 'confirmed')::int as seats_taken,
+         (e.starts_at::date = (now() at time zone 'utc')::date) as is_live,
          st_x(e.approx_location::geometry) as approx_lng, st_y(e.approx_location::geometry) as approx_lat
   from events e where e.starts_at > now() - interval '3 hours';
 
+create view public_businesses as
+  select id, name, category, description, address, hours, is_filipino_owned,
+         st_x(location::geometry) as lng, st_y(location::geometry) as lat
+  from businesses;
+
 -- address only for confirmed guests (or the host)
-create or replace function meal_address(p_meal uuid) returns text language sql security definer stable as $$
-  select m.address from meals m
-  where m.id = p_meal
-    and (m.host_id = auth.uid()
-         or exists (select 1 from rsvps r where r.meal_id = m.id and r.user_id = auth.uid() and r.status = 'confirmed'))
+create or replace function event_address(p_event uuid) returns text language sql security definer stable as $$
+  select e.address from events e
+  where e.id = p_event
+    and (e.host_id = auth.uid()
+         or exists (select 1 from rsvps r where r.event_id = e.id and r.user_id = auth.uid() and r.status = 'confirmed'))
 $$;
 
 -- ---------- RLS ----------
 alter table profiles enable row level security;
-alter table meals enable row level security;
 alter table events enable row level security;
+alter table businesses enable row level security;
+alter table posts enable row level security;
+alter table kapits enable row level security;
 alter table rsvps enable row level security;
 alter table messages enable row level security;
 alter table conversation_members enable row level security;
@@ -176,11 +188,15 @@ alter table blocks enable row level security;
 create policy "own profile" on profiles for all using (id = auth.uid()) with check (id = auth.uid());
 -- everyone else reads profiles ONLY through public_profiles (no direct select policy on the table)
 
-create policy "meals: host manages"  on meals  for all using (host_id = auth.uid()) with check (host_id = auth.uid());
 create policy "events: host manages" on events for all using (host_id = auth.uid()) with check (host_id = auth.uid());
+create policy "businesses: read" on businesses for select using (true);
+create policy "businesses: owner manages" on businesses for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "posts: read" on posts for select using (
+  not exists (select 1 from blocks b where b.user_id = auth.uid() and b.blocked_user_id = posts.author_id));
+create policy "posts: own" on posts for all using (author_id = auth.uid()) with check (author_id = auth.uid());
+create policy "kapits: either side" on kapits for all using (user_id = auth.uid() or kapit_id = auth.uid()) with check (user_id = auth.uid());
 create policy "rsvps: own"  on rsvps for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "rsvps: host sees" on rsvps for select using (
-  exists (select 1 from meals m where m.id = rsvps.meal_id and m.host_id = auth.uid()) or
   exists (select 1 from events e where e.id = rsvps.event_id and e.host_id = auth.uid()));
 create policy "messages: members" on messages for all using (
   exists (select 1 from conversation_members cm where cm.conversation_id = messages.conversation_id and cm.user_id = auth.uid()));
@@ -188,4 +204,4 @@ create policy "members: self" on conversation_members for select using (user_id 
 create policy "reports: file" on reports for insert with check (reporter_id = auth.uid());
 create policy "blocks: own" on blocks for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
-grant select on public_profiles, public_meals, public_events, spots to anon, authenticated;
+grant select on public_profiles, public_events, public_businesses to anon, authenticated;

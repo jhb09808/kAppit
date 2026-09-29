@@ -18,14 +18,14 @@
 .search input::placeholder { color: var(--ink-faint); }
 .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
 
-/* visibility toggle — your photo with a status ring */
-.vis {
-  width: 44px; height: 44px; border-radius: 50%; background: #c98b6b; border: 3px solid var(--leaf);
-  display: grid; place-items: center; font: 400 15px var(--font-serif); color: #fff; position: relative; flex: 0 0 auto;
-  box-shadow: var(--shadow-card); transition: border-color .2s, filter .2s;
+/* settings button, with a visibility dot: leaf = visible, grey = hidden */
+.settingsbtn {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--linen); border: 1px solid var(--line);
+  display: grid; place-items: center; color: var(--ink); position: relative; flex: 0 0 auto; box-shadow: var(--shadow-card);
 }
-.vis.hidden { border-color: var(--ink-faint); filter: saturate(.4) brightness(.9); }
-.vis span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font: 700 9px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); white-space: nowrap; }
+.settingsbtn:hover { border-color: var(--ube); color: var(--ube); }
+.settingsbtn .dot { position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--ink-faint); border: 2px solid var(--linen); }
+.settingsbtn .dot.on { background: var(--leaf); }
 
 .chips { display: flex; gap: 8px; margin-top: 11px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }

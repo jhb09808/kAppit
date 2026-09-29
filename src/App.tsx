@@ -2,6 +2,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Shell from "./components/Shell";
 import MapScreen from "./screens/MapScreen";
 import Welcome from "./screens/Welcome";
+import Events from "./screens/Events";
+import Feed from "./screens/Feed";
+import Settings from "./screens/Settings";
 import Placeholder from "./screens/Placeholder";
 
 export default function App() {
@@ -11,10 +14,12 @@ export default function App() {
         <Route path="/welcome" element={<Welcome />} />
         <Route element={<Shell />}>
           <Route path="/" element={<MapScreen />} />
-          <Route path="/events" element={<Placeholder title="Events" note="Birthdays, karaoke, sports, gatherings — anything with an open door." />} />
-          <Route path="/host" element={<Placeholder title="Host a meal" note="I'm making sinigang for 4, come through. Dish, time, seats, area." />} />
-          <Route path="/chats" element={<Placeholder title="Chats" note="Messages, plus a thread for every meal you're in." />} />
-          <Route path="/you" element={<Placeholder title="You" note="Your profile, your kapits, your settings." />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/feed" element={<Feed />} />
+          <Route path="/chats" element={<Placeholder title="Chats" note="Messages, plus a thread for every event you're in." />} />
+          <Route path="/profile" element={<Placeholder title="Profile" note="Your photo, where you're from, your type, your kapits." />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/blocked" element={<Placeholder title="Blocked people" note="Nobody blocked. Block from any profile, event, or chat." />} />
         </Route>
       </Routes>
     </BrowserRouter>

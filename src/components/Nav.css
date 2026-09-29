@@ -10,11 +10,6 @@
   font: 700 9.5px var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
 }
 .nv.active { color: var(--ube); }
-.nv.host { color: var(--flan-600); }
-.nv.host .fab {
-  width: 52px; height: 52px; border-radius: 50%; background: var(--flan); display: grid; place-items: center; color: var(--ink);
-  margin-top: -26px; margin-bottom: 1px; box-shadow: var(--shadow-host); border: 3px solid var(--linen);
-}
 
 @media (min-width: 1100px) {
   .nav {
@@ -24,6 +19,4 @@
   .brandmark { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 18px; }
   .nv { flex: 0 0 auto; width: 64px; padding: 10px 0; border-radius: var(--radius-lg); }
   .nv.active { background: var(--ube-100); }
-  .nv.host { margin-top: 6px; }
-  .nv.host .fab { margin: 0 0 2px; }
 }

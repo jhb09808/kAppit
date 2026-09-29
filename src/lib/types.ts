@@ -1,4 +1,7 @@
-/** Domain types for kAppit. Mirrors the Supabase schema in supabase/schema.sql. */
+/** Domain types for kAppit. Mirrors the Supabase schema in supabase/schema.sql.
+ *
+ *  Three function groups: PEOPLE · EVENTS (many categories, food share is one) · BUSINESSES.
+ */
 
 export type PersonType =
   | "new_arrival"
@@ -10,7 +13,17 @@ export type PersonType =
   | "free_now"
   | "konduktor";
 
-export type EventKind = "birthday" | "karaoke" | "sports" | "gathering";
+/** Event categories. food_share is the casual one: "I'm making sinigang for 4, come through." */
+export type EventCategory =
+  | "food_share"
+  | "birthday"
+  | "karaoke"
+  | "sports"
+  | "church"
+  | "outdoors"
+  | "gathering";
+
+export type BusinessCategory = "restaurant" | "grocery" | "bakery" | "remittance" | "salon" | "other";
 
 export interface Profile {
   id: string;
@@ -23,52 +36,55 @@ export interface Profile {
   open_to_dating: boolean;         // the heart badge is shown only to others who also opted in
   is_new_arrival: boolean;
   is_verified: boolean;
-  is_visible: boolean;             // the map visibility toggle; default false
+  is_visible: boolean;             // map visibility; default false
   /** Jittered coordinates only — the exact location never leaves the server. */
   approx_lng: number | null;
   approx_lat: number | null;
-}
-
-export interface Meal {
-  id: string;
-  host_id: string;
-  host?: Profile;
-  dish: string;
-  note: string | null;
-  starts_at: string;               // ISO
-  seats_total: number;
-  seats_taken: number;
-  is_live: boolean;                // tonight
-  approx_lng: number;
-  approx_lat: number;
 }
 
 export interface Event {
   id: string;
   host_id: string;
   host?: Profile;
-  title: string;
-  kind: EventKind;
+  category: EventCategory;
+  title: string;                   // for food_share this is the dish
   description: string | null;
-  starts_at: string;
+  starts_at: string;               // ISO
   venue: string | null;
   open_to_everyone: boolean;
-  rsvp_count: number;
+  seats_total: number | null;      // food_share and small gatherings; null = unlimited
+  seats_taken: number;
+  is_live: boolean;                // today
   approx_lng: number;
   approx_lat: number;
 }
 
-export interface Spot {
+export interface Business {
   id: string;
   name: string;
-  category: string;                // "grocery", "restaurant", "church"
-  lng: number;                     // spots are businesses: exact is fine
+  category: BusinessCategory;
+  description: string | null;
+  address: string | null;
+  hours: string | null;
+  is_filipino_owned: boolean;
+  lng: number;                     // businesses are public: exact is fine
   lat: number;
+}
+
+/** A post on the feed. */
+export interface Post {
+  id: string;
+  author_id: string;
+  author?: Profile;
+  body: string;
+  photo_url: string | null;
+  event_id: string | null;         // a post can be about an event
+  business_id: string | null;      // or a business
+  created_at: string;
 }
 
 /** One thing on the map — what the pins and the handrail list render. */
 export type MapItem =
   | { kind: "person"; id: string; lng: number; lat: number; data: Profile }
-  | { kind: "meal"; id: string; lng: number; lat: number; data: Meal }
   | { kind: "event"; id: string; lng: number; lat: number; data: Event }
-  | { kind: "spot"; id: string; lng: number; lat: number; data: Spot };
+  | { kind: "business"; id: string; lng: number; lat: number; data: Business };

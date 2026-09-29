@@ -24,9 +24,9 @@
 .row:hover { background: var(--abaca); border-color: var(--line); }
 .thumb { width: 52px; height: 52px; border-radius: 13px; flex: 0 0 auto; display: grid; place-items: center; font: 400 17px var(--font-serif); color: #fff; background-image: var(--weave); }
 .thumb svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.thumb.meal { background-color: var(--verm); }
+.thumb.food { background-color: var(--verm); }
 .thumb.event { background-color: var(--flan); } .thumb.event svg { stroke: var(--ink); }
-.thumb.spot { background-color: var(--leaf); }
+.thumb.business { background-color: var(--leaf); }
 .thumb.person { border-radius: 50%; background-color: var(--ube); background-image: none; }
 .rinfo { flex: 1; min-width: 0; }
 .rinfo .t { font: 400 16.5px/1.2 var(--font-serif); display: flex; align-items: center; gap: 7px; }

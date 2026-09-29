@@ -2,10 +2,10 @@ import { NavLink } from "react-router-dom";
 import { Icon, Mark } from "./Icon";
 import "./Nav.css";
 
-/** Bottom bar on phone; left rail on desktop. Host is the raised flan button. */
+/** Bottom bar on phone; left rail on desktop. Map · Events · Feed · Chats · Profile. */
 export default function Nav() {
   const item = (to: string, icon: Parameters<typeof Icon>[0]["name"], label: string) => (
-    <NavLink to={to} className={({ isActive }) => `nv${isActive ? " active" : ""}`}>
+    <NavLink to={to} end={to === "/"} className={({ isActive }) => `nv${isActive ? " active" : ""}`}>
       <Icon name={icon} size={22} stroke={1.7} />{label}
     </NavLink>
   );
@@ -14,11 +14,9 @@ export default function Nav() {
       <div className="brandmark"><Mark size={40} /></div>
       {item("/", "map", "Map")}
       {item("/events", "events", "Events")}
-      <NavLink to="/host" className={({ isActive }) => `nv host${isActive ? " active" : ""}`}>
-        <span className="fab"><Icon name="plus" size={24} stroke={2.4} /></span>Host
-      </NavLink>
+      {item("/feed", "feed", "Feed")}
       {item("/chats", "chat", "Chats")}
-      {item("/you", "you", "You")}
+      {item("/profile", "you", "Profile")}
     </nav>
   );
 }

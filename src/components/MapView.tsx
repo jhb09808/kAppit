@@ -36,15 +36,13 @@ function pinElement(item: MapItem, viewerOptedIntoDating: boolean): HTMLDivEleme
     el.innerHTML = `${p.photo_url ? "" : initials}<span class="ty"><svg viewBox="0 0 24 24">${GLYPH[type]}</svg></span>${p.is_verified ? `<span class="ver"><svg viewBox="0 0 24 24">${GLYPH.check}</svg></span>` : ""}`;
     if (p.photo_url) el.style.backgroundImage = `url(${p.photo_url})`;
     else el.style.backgroundColor = ["#c98b6b", "#8a5a44", "#d9a37a", "#a8785a", "#7a5340"][p.id.charCodeAt(p.id.length - 1) % 5];
-  } else if (item.kind === "meal") {
-    el.className = `pin meal${item.data.is_live ? " live" : ""}`;
-    el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH.meal}</svg>`;
   } else if (item.kind === "event") {
-    el.className = "pin event";
-    el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH[item.data.kind]}</svg>`;
+    const food = item.data.category === "food_share";
+    el.className = `pin ${food ? "food" : "event"}${item.data.is_live ? " live" : ""}`;
+    el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH[item.data.category]}</svg>`;
   } else {
-    el.className = "pin spot";
-    el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH.spot}</svg>`;
+    el.className = "pin business";
+    el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH[item.data.category]}</svg>`;
   }
   return el;
 }
