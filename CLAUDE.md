@@ -29,7 +29,7 @@ The single source of truth for brand, tokens, components, copy rules, and the ma
 - `src/styles/` — tokens and global styles
 - `src/components/` — MapView, Handrail (the sheet/sidebar), Nav, Shell, Icon (glyphs, Mark, Wordmark)
 - `src/screens/` — Welcome (splash + onboarding + fourth-wall Kap), MapScreen (home), Events (categories + Host sheet), Feed (My kapits / Everyone nearby; posts carry text, up to 4 photos or 1 video, an external link preview, an event, or a business), Settings, placeholders for Chats and Profile
-- `src/lib/` — types, geo (jitter/distance), seed data, settings store (device-local until auth), useLocation (asks once, watches, remembers the grant), supabase client
+- `src/lib/` — types, geo (jitter/distance), seed data, settings store (device-local until auth), supabase client. Location uses MapLibre's GeolocateControl (styled ube) — never a hand-rolled marker
 - `supabase/schema.sql` — tables, jitter trigger, public views, RLS
 
 ## Working here
@@ -38,7 +38,7 @@ The single source of truth for brand, tokens, components, copy rules, and the ma
 
 ## Map pins
 
-People = photo (or initials) in an ube ring with a type badge. Events: food share is `--verm` (pulses when today), every other category is `--flan`. Businesses are `--leaf`. Below zoom 12 everything collapses to dots. The viewer's own dot appears only once there is a real geolocation fix; nothing is ever hardcoded as "you".
+People = photo (or initials) in an ube ring with a type badge. Events: food share is `--verm` (pulses when today), every other category is `--flan`. Businesses are `--leaf`. Below zoom 12 everything collapses to dots. The viewer's own dot is MapLibre's GeolocateControl dot (ube), only after a real fix; nothing is ever hardcoded as "you". Marker elements are a .pinshell (positioned by MapLibre, never transitioned) wrapping the visual .pin — never put a transform transition on the marker root or pins will lag during panning.
 
 ## What's next (in order)
 

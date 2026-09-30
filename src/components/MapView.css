@@ -1,25 +1,34 @@
 .mapwrap { position: relative; width: 100%; height: 100%; }
 .map { position: absolute; inset: 0; }
 .maplibregl-ctrl-attrib { font-family: var(--font-sans); font-size: 10px; background: rgba(253, 251, 244, .85) !important; }
-.maplibregl-ctrl-bottom-right { bottom: calc(var(--nav-h) + var(--safe-b) + 66px); }
 
-.recenter {
-  position: absolute; right: 16px; bottom: calc(var(--nav-h) + var(--safe-b) + 78px);
-  width: 44px; height: 44px; border-radius: 50%; background: var(--linen); border: 1px solid var(--line);
-  display: grid; place-items: center; box-shadow: var(--shadow-pin); z-index: 28; transition: border-color .18s;
-}
-.recenter:hover { border-color: var(--ube); }
-.recenter svg { width: 20px; height: 20px; stroke: var(--ink-faint); fill: none; stroke-width: 2; }
-.recenter.on svg { stroke: var(--ube); }
+/* the geolocate control is our "my location" button — styled to the system */
+.maplibregl-ctrl-bottom-right { bottom: calc(var(--nav-h) + var(--safe-b) + 78px); right: 10px; }
+.maplibregl-ctrl-group { background: var(--linen) !important; border: 1px solid var(--line) !important; border-radius: 999px !important; box-shadow: var(--shadow-pin) !important; }
+.maplibregl-ctrl-group button { width: 44px !important; height: 44px !important; border-radius: 999px !important; }
+.maplibregl-ctrl-group button + button { border-top: none !important; }
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate .maplibregl-ctrl-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a94a5' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='3.4'/%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 2v2M12 20v2M2 12h2M20 12h2'/%3E%3C/svg%3E") !important; }
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate-active .maplibregl-ctrl-icon,
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate-background .maplibregl-ctrl-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236a3fa0' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='3.4'/%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 2v2M12 20v2M2 12h2M20 12h2'/%3E%3C/svg%3E") !important; }
+.maplibregl-ctrl button.maplibregl-ctrl-geolocate-waiting .maplibregl-ctrl-icon { animation: none !important; opacity: .55; }
 
-/* pins — the markers on the real map */
+/* the user's own dot: MapLibre draws it; we recolor it ube */
+.maplibregl-user-location-dot, .maplibregl-user-location-dot::before { background-color: var(--ube) !important; }
+.maplibregl-user-location-dot { width: 18px !important; height: 18px !important; border: 3px solid var(--abaca) !important; box-shadow: 0 3px 10px rgba(78, 45, 122, .4) !important; }
+.maplibregl-user-location-dot::after { border: 2px solid var(--abaca) !important; box-shadow: none !important; }
+.maplibregl-user-location-accuracy-circle { background-color: rgba(106, 63, 160, .12) !important; border: 1px solid rgba(106, 63, 160, .3) !important; }
+
+/* pins — the marker's outer shell is positioned by MapLibre and NEVER transitions transform.
+   Everything visual (size, hover scale, pulse) lives on the inner .pin. */
+.pinshell { width: 42px; height: 42px; cursor: pointer; }
 .pin {
   width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
-  border: 3px solid var(--abaca); cursor: pointer; box-shadow: var(--shadow-pin); position: relative;
-  transition: transform .18s, width .2s, height .2s;
+  border: 3px solid var(--abaca); box-shadow: var(--shadow-pin); position: relative;
+  transition: transform .15s ease, width .2s, height .2s;
 }
-.pin:hover { transform: scale(1.08); }
-.pin.sel { transform: scale(1.16); z-index: 5; }
+.pinshell:hover .pin { transform: scale(1.08); }
+.pin.sel { transform: scale(1.16); }
+.pinshell:has(.sel) { z-index: 5; }
 .pin svg { width: 19px; height: 19px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pin.food { background: var(--verm); }
 .pin.event { background: var(--flan); } .pin.event svg { stroke: var(--ink); }
@@ -32,10 +41,11 @@
 .pin.live::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--verm); opacity: .55; animation: ping 2.4s ease-out infinite; }
 
 /* zoomed out: pins collapse to colored dots */
-.pin.dot { width: 16px; height: 16px; border-width: 2px; font-size: 0; }
+.pin.dot { width: 16px; height: 16px; border-width: 2px; font-size: 0; margin: 13px; }
 .pin.dot svg, .pin.dot .ty, .pin.dot .ver { display: none; }
 .pin.dot.person { background-image: none !important; background-color: var(--ube) !important; }
 .pin.dot::after { display: none; }
 
-.me { width: 22px; height: 22px; border-radius: 50%; background: var(--ube); border: 3.5px solid var(--abaca); position: relative; z-index: 6; box-shadow: 0 3px 10px rgba(78, 45, 122, .4); }
-.me::after { content: ""; position: absolute; inset: -11px; border-radius: 50%; border: 2px solid var(--ube); opacity: .45; animation: ping 3s ease-out infinite; }
+@media (min-width: 1100px) {
+  .maplibregl-ctrl-bottom-right { bottom: 24px; right: 24px; }
+}

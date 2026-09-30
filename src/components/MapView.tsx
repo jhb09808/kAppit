@@ -25,11 +25,14 @@ function recolor(map: maplibregl.Map) {
   }
 }
 
+/** The marker element: an outer shell MapLibre positions (never styled with transform), an inner .pin we can scale. */
 function pinElement(item: MapItem, viewerOptedIntoDating: boolean): HTMLDivElement {
+  const shell = document.createElement("div");
+  shell.className = "pinshell";
   const el = document.createElement("div");
+  shell.appendChild(el);
   if (item.kind === "person") {
     const p = item.data;
-    // the dating heart is visible only to viewers who also opted in; otherwise they read as a friends pin
     const type = p.primary_type === "dating" && !viewerOptedIntoDating ? "friends" : p.primary_type;
     el.className = `pin person${p.primary_type === "free_now" ? " live" : ""}`;
     const initials = p.display_name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
@@ -44,30 +47,32 @@ function pinElement(item: MapItem, viewerOptedIntoDating: boolean): HTMLDivEleme
     el.className = "pin business";
     el.innerHTML = `<svg viewBox="0 0 24 24">${GLYPH[item.data.category]}</svg>`;
   }
-  return el;
+  return shell;
 }
 
 /** Below this zoom, pins collapse to plain colored dots. */
 const DOT_ZOOM = 12;
 
+export type LocStatus = "idle" | "locating" | "granted" | "denied" | "error" | "insecure" | "unsupported";
+export interface Located { lng: number; lat: number; accuracy: number }
+
 interface Props {
   items: MapItem[];
   center: [number, number];
-  me: { lng: number; lat: number; accuracy: number } | null;
   selectedId: string | null;
   viewerOptedIntoDating: boolean;
+  wantLocation: number;                       // bump this to ask for location (from a button)
   onSelect: (id: string) => void;
-  onRequestLocation: () => void;
+  onLocation: (me: Located | null, status: LocStatus) => void;
   onMoveEnd?: (bounds: maplibregl.LngLatBounds) => void;
 }
 
-export default function MapView({ items, center, me, selectedId, viewerOptedIntoDating, onSelect, onRequestLocation, onMoveEnd }: Props) {
+export default function MapView({ items, center, selectedId, viewerOptedIntoDating, wantLocation, onSelect, onLocation, onMoveEnd }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const geo = useRef<maplibregl.GeolocateControl | null>(null);
   const markers = useRef<Map<string, maplibregl.Marker>>(new Map());
-  const meMarker = useRef<maplibregl.Marker | null>(null);
-  const flewToMe = useRef(false);
-  const [ready, setReady] = useState(0);   // bumps when a map instance exists; marker effects key off it
+  const [ready, setReady] = useState(0);
 
   useEffect(() => {
     if (!el.current || map.current) return;
@@ -79,30 +84,40 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
     });
     m.on("style.load", () => recolor(m));
     m.on("moveend", () => onMoveEnd?.(m.getBounds()));
+
+    // The user's own location: MapLibre's control handles the prompt, the dot, the accuracy ring and following.
+    const g = new maplibregl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      trackUserLocation: true,
+      showAccuracyCircle: true,
+      showUserLocation: true,
+      fitBoundsOptions: { maxZoom: 14.5 },
+    });
+    g.on("geolocate", (e) => onLocation({ lng: e.coords.longitude, lat: e.coords.latitude, accuracy: e.coords.accuracy }, "granted"));
+    g.on("error", (e) => onLocation(null, e.code === 1 ? "denied" : "error"));
+    g.on("trackuserlocationstart", () => onLocation(null, "locating"));
+    m.addControl(g, "bottom-right");
+    geo.current = g;
     map.current = m;
     setReady((r) => r + 1);
     return () => {
-      // StrictMode/HMR tear the map down and rebuild it: forget every marker that belonged to the old instance
       for (const mk of markers.current.values()) mk.remove();
       markers.current.clear();
-      meMarker.current = null;
-      flewToMe.current = false;
+      geo.current = null;
       m.remove(); map.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // the viewer's own dot — only once we actually have a fix
+  // ask for location when the screen asks us to (button tap, or remembered grant)
   useEffect(() => {
-    const m = map.current; if (!m || !me) return;
-    void ready;
-    if (!meMarker.current) {
-      const dot = document.createElement("div"); dot.className = "me"; dot.setAttribute("aria-label", "You");
-      meMarker.current = new maplibregl.Marker({ element: dot }).setLngLat([me.lng, me.lat]).addTo(m);
-      console.info("[kAppit] you are at", me.lat.toFixed(5), me.lng.toFixed(5), `±${Math.round(me.accuracy)}m`);
-    } else meMarker.current.setLngLat([me.lng, me.lat]);
-    if (!flewToMe.current) { flewToMe.current = true; m.flyTo({ center: [me.lng, me.lat], zoom: 13.6, duration: 1400 }); }
-  }, [me, ready]);
+    if (!wantLocation || !geo.current) return;
+    if (!window.isSecureContext) { onLocation(null, "insecure"); return; }
+    if (!("geolocation" in navigator)) { onLocation(null, "unsupported"); return; }
+    const g = geo.current;
+    const kick = () => g.trigger();
+    if (map.current?.loaded()) kick(); else map.current?.once("load", kick);
+  }, [wantLocation, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // sync markers with items
   useEffect(() => {
@@ -112,31 +127,25 @@ export default function MapView({ items, center, me, selectedId, viewerOptedInto
     for (const it of items) {
       seen.add(it.id);
       if (markers.current.has(it.id)) continue;
-      const pin = pinElement(it, viewerOptedIntoDating);
-      pin.addEventListener("click", (e) => { e.stopPropagation(); onSelect(it.id); });
-      markers.current.set(it.id, new maplibregl.Marker({ element: pin }).setLngLat([it.lng, it.lat]).addTo(m));
+      const shell = pinElement(it, viewerOptedIntoDating);
+      shell.addEventListener("click", (e) => { e.stopPropagation(); onSelect(it.id); });
+      markers.current.set(it.id, new maplibregl.Marker({ element: shell }).setLngLat([it.lng, it.lat]).addTo(m));
     }
     for (const [id, mk] of markers.current) if (!seen.has(id)) { mk.remove(); markers.current.delete(id); }
   }, [items, viewerOptedIntoDating, onSelect, ready]);
 
-  // selection + zoom-level collapse
+  // selection
   useEffect(() => {
-    for (const [id, mk] of markers.current) mk.getElement().classList.toggle("sel", id === selectedId);
+    for (const [id, mk] of markers.current) mk.getElement().firstElementChild?.classList.toggle("sel", id === selectedId);
   }, [selectedId]);
 
+  // zoom-level collapse
   useEffect(() => {
     const m = map.current; if (!m) return;
-    const apply = () => { const dots = m.getZoom() < DOT_ZOOM; for (const mk of markers.current.values()) mk.getElement().classList.toggle("dot", dots); };
+    const apply = () => { const dots = m.getZoom() < DOT_ZOOM; for (const mk of markers.current.values()) mk.getElement().firstElementChild?.classList.toggle("dot", dots); };
     m.on("zoom", apply); apply();
     return () => { m.off("zoom", apply); };
   }, [items, ready]);
 
-  return (
-    <div className="mapwrap">
-      <div ref={el} className="map" />
-      <button className={`recenter${me ? " on" : ""}`} aria-label="My location" onClick={() => { if (me) map.current?.flyTo({ center: [me.lng, me.lat], zoom: 14 }); else onRequestLocation(); }}>
-        <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: GLYPH.recenter }} />
-      </button>
-    </div>
-  );
+  return <div className="mapwrap"><div ref={el} className="map" /></div>;
 }
