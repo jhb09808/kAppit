@@ -11,7 +11,7 @@ The single source of truth for brand, tokens, components, copy rules, and the ma
 - Vite + React 19 + TypeScript. React Router for screens.
 - MapLibre GL with OpenFreeMap tiles (no key), recolored to the palette in `src/components/MapView.tsx`.
 - Supabase for auth, Postgres + PostGIS, realtime, storage. Schema in `supabase/schema.sql`. The client runs on seed data (`src/lib/seed.ts`) until `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are set in `.env.local`.
-- Deploy target: Vercel or Cloudflare Pages from `main`.
+- Deploy: GitHub Pages from `main` via `.github/workflows/pages.yml` → https://jeromebustarga.com/kAppit/ (the custom domain on the user site covers project pages). The build sets `GITHUB_PAGES=1`, which switches Vite's `base` to `/kAppit/` and emits a `404.html` copy of `index.html` so SPA deep links resolve. `BrowserRouter` uses `import.meta.env.BASE_URL` as its basename. Local builds stay at base `/`.
 
 ## Rules that are not negotiable
 

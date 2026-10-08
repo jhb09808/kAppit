@@ -9,7 +9,7 @@ import Placeholder from "./screens/Placeholder";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/welcome" element={<Welcome />} />
         <Route element={<Shell />}>
